@@ -144,32 +144,49 @@ For the randomized setting, we show that \textbf{Marking Algorithm} has achieved
 \end{itemize}
 
 \section{$\boldsymbol{\log k}$ is tight for any randomized paging algorithm}
-It is hard to construct a deterministic adversarial setting directly due to the randomness. Instead, we formulate the problem in a game theoretical manner where the problem essentially becomes a min-max game between algorithm designer and the sequence constructor.
+It is hard to construct a deterministic adversarial setting directly due to the randomness. Instead, we formulate the problem in a game theoretical manner where the problem essentially becomes a min-max game between algorithm designer and the sequence constructor: The algorithm designer wants to minimize the cost, while the sequence constructor wants to maximize the cost. A randomized algorithm is a probability distribution over the deterministic algorithms, so it is a mixed strategy for the algorithm designer. 
+
 \subsection{Yao's Min-max Principle}
 Let $\alpha$ be one specific decision instance made by the algorithm and $A$ be the set of all possible instances.
 
 Let $\sigma$ be the one specific sequence instance and $\Sigma$ be the set of all possible sequence instances.
 
-Denote $\Delta(\cdot)$ as the mixture operator.
+Denote $\Delta(\cdot)$ as the mixture operator, i.e., $\Delta(A)$ is a mixed strategy for $A$.
 
-Denote $cost(\alpha, \sigma)$ as the cost by applying decisions $\alpha$ to the input $\sigma$.
+Denote $cost(\alpha, \sigma)$ as the cost by applying decisions $\alpha$ to the input $\sigma$. The payoff matrix consists of $cost(\alpha_j, \sigma_i)$.
 
-The game is essentially:
-$$
-\min_{\alpha \sim \Delta(A)}\max_{\sigma \sim \Delta(\Sigma)}\mathbb{E}\left[\frac{cost(\alpha, \sigma)}{cost(OPT, \sigma)}\right]
-$$
+The competitive ratio can be written as $\frac{cost(\alpha, \sigma)}{cost(OPT, \sigma)}$.
 
-Applying the min-max theorem, we can reduce it to:
-\begin{align*}
-&\min_{\alpha \sim \Delta(A)}\max_{\sigma \sim \Delta(\Sigma)}\mathbb{E}\left[\frac{cost(\alpha, \sigma)}{cost(OPT, \sigma)}\right] \\
-&=\max_{\sigma \sim \Delta(\Sigma)}\min_{\alpha \sim \Delta(A)}\mathbb{E}\left[\frac{cost(\alpha, \sigma)}{cost(OPT, \sigma)}\right] \\
-&\geq \min_{\alpha \sim A} \mathbb{E}\left[\frac{cost(\alpha, \sigma)}{cost(OPT, \sigma)}\right], \forall \sigma \sim \Delta(\Sigma) \\
-&\text{(notice that we have got rid of the randomness in our decisions)}
-\end{align*}
-\newpage
-\begin{theorem}
-    Any randomized online algorithm cannot do better than $\boldsymbol{\Omega(\log k)}$
+\begin{theorem}[Yao's Minmax Principle]
+	The best competitive ratio of randomized algorithm is lower bounded by the best deterministic algorithm under a worst-case input distribution. Formally, let $C_R$ denote the competitive ratio of randomized algorithm, Yao's minmax principle shows:
+	
+	$$
+	C_R\ge\min_{\alpha \sim A} \mathbb{E}\left[\frac{cost(\alpha, \sigma)}{cost(OPT, \sigma)}\right], \forall \sigma \sim \Delta(\Sigma)$$
 \end{theorem}
+
+\begin{proof}
+	Note the goal of the game is:
+	$$
+	\min_{\alpha \sim \Delta(A)}\max_{\sigma \sim \Delta(\Sigma)}\mathbb{E}\left[\frac{cost(\alpha, \sigma)}{cost(OPT, \sigma)}\right]
+	$$
+	
+	In min-max theorem, when one player uses the equilibrium(optimal) mixed strategy, the other player has a pure strategy as a response. 
+	
+	Applying the min-max theorem, we can reduce the it to:
+	\begin{align*}
+	&\min_{\alpha \sim \Delta(A)}\max_{\sigma \sim \Delta(\Sigma)}\mathbb{E}\left[\frac{cost(\alpha, \sigma)}{cost(OPT, \sigma)}\right] \\
+	&=\max_{\sigma \sim \Delta(\Sigma)}\min_{\alpha \sim \Delta(A)}\mathbb{E}\left[\frac{cost(\alpha, \sigma)}{cost(OPT, \sigma)}\right]\\
+	&=\max_{\sigma \sim \Delta(\Sigma)}\min_{\alpha \sim A}\mathbb{E}\left[\frac{cost(\alpha, \sigma)}{cost(OPT, \sigma)}\right] \\
+	&\geq \min_{\alpha \sim A} \mathbb{E}\left[\frac{cost(\alpha, \sigma)}{cost(OPT, \sigma)}\right], \forall \sigma \sim \Delta(\Sigma) \\
+	&\text{(notice that we have got rid of the randomness in our decisions)}
+	\end{align*}
+	Hence the competitive ratio of a randomized algorithm is lower bounded by the best deterministic algorithm.
+\end{proof} 
+
+\begin{theorem}
+    Any randomized online algorithm cannot do better than $\boldsymbol{\Omega(\log k)}$ for paging.
+\end{theorem}
+\begin{proof}
 Our sequence only picks from page $1, \dots, k, k+1$, where $k$ is the cache capacity. At every time, it picks a random page uniformly from the options. Then, it can easily be shown that regardless of what decisions the algorithm has made, its expected cost over $T$ steps will be: $\mathbb{E}\left[cost(\alpha, \sigma)\right] = \frac{T}{k+1}$ as a cache miss occurs w.p $P = \frac{1}{k+1}$.
 
 Next, define \textbf{phase} as the shortest sub-sequence where all $(k+1)$ pages has appeared for at least once. The O.P.T will make exactly 1 cache miss during one phase. Therefore, for a phase $\sigma_p$ of length $T$, it can be shown that:
@@ -193,10 +210,12 @@ In summary, we have:
     &cost(Algo) = \frac{T}{(k+1)}
 \end{align*}
 
-Thus, any randomized cannot do better than $\Omega{H_{k+1}} \approx \Omega(\log k)$ competitive ratio under the given random sequence. 
+Thus, by Yao's minmax theorem, any randomized cannot do better than $\Omega(H_{k+1}) \approx \Omega(\log k)$ competitive ratio under the given random sequence. 
+\end{proof}
+
 \section{K-Server Problem}
 Initially, we have k-servers scattered around a metric space. A sequence of requests happen and we need to send a server to handle each response. The objective is to minimize the total distance traveled by the servers.
-\newpage
+
 \subsection{K-Server Problem captures the paging problem}
 For a cache with capacity $k$, we define a star graph with $k+2$ vertices:
 \begin{center}
@@ -207,7 +226,7 @@ Our servers scatter on the corner vertices. Every time, a response happen at one
 \subsection{Competitive Online Algorithm for k-server}
 We focus on the strategy when the metric space is a 1-d straight line though it can be generalized to any arbitrary metric space.
 \begin{algorithm}
-\caption{Move servers in response to request}
+\caption{Double Coverage Algorithm}%Move servers in response to request}
 \begin{algorithmic} 
 \IF{\text{Requests happen outside the interval covered by the servers}}
 \STATE \text{Move the closest server to handle the event}
@@ -216,20 +235,29 @@ We focus on the strategy when the metric space is a 1-d straight line though it 
 \ENDIF
 \end{algorithmic}
 \end{algorithm}
-\newline
+
+\begin{lemma}
+	The double coverage algorithm is k-competitive.
+\end{lemma}
+
+\begin{proof}
 To help us conduct the competitive analysis, we define the following auxiliary potential function:
 
-$$\varphi = k \cdot (\text{min cost match between server positions by Algo and OPT}) + (\text{pair-wise distances of servers in Algo})$$
+$$\varphi = k \cdot M + S$$
 
-Make the following notation
+Where 
 \begin{itemize}
-    \item  $M = (\text{min cost match between server positions by Algo and OPT})$.
-    \item  $S = (\text{pair-wise distances of servers in Algo})$.
+    \item  $M = \text{min cost matching between server positions by Algo and OPT}$.
+    \item  $S = \text{the sum of pair-wise distances of servers in Algo}$.
 \end{itemize}
 
+Next, we consider how moves from the optimal algorithm and our algorithm will influence the potential function. Our goal is to show that 
+$$
+c_i^{ALG}+\varphi_i-\varphi_{i-1}\le 2k\cdot c_i^{OPT}
+$$
+where $c_i^{ALG}$ is the competitive ratio for the algorithm, and $c_i^{OPT}$ is the optimum competitive ratio. Note that $\varphi_i-\varphi_{i-1} = \Delta M + \Delta S$, where $\Delta M$ and $\Delta S$ are changes of $M$ and $S$ by each step. We are going to prove the $k$-competitive algorithm by deduction.
 
-
-Next, we consider how moves from the Optimal algorithm and our algorithm will influence the potential function. For convenience of analysis, we assume the optimal algorithm moves first, and our algorithm moves after in response to a request.
+For convenience of analysis, we assume the optimal algorithm moves first, and our algorithm moves after in response to a request.
 
 \begin{lemma}
 For two different server arrangements $X_{OPT}$ and $X_{{Algo}}$, we can always first sort $X_{OPT}$ and $X_{Algo}$ on the line and then match them by order to obtain a min cost matching.
@@ -245,14 +273,14 @@ Suppose O.P.T moves by $d$:
 
 Suppose our algorithm moves by $d$:
 
-If the request is outside the range, we have:
+If the request is outside the range, then we only need to move one server, we have:
 \begin{itemize}
     \item $\Delta{M} = -d$, as the server moved by our algorithm gets closer to the rightmost server of the O.P.T for exactly $d$.
     \item $\Delta{S} = (k-1)d$, as rightmost server of our algorithm is getting further away from all the other servers.
 \end{itemize}
-If the request is within the interval of servers $L$ and $R$,
+If the request is within the interval of servers $L$ and $R$, then both servers need to move distance $d$ as one of them matches to request,
 \begin{itemize}
-    \item $\Delta{M} <= 0$. By our lemma, there could be at two types of min-cost matching before our algorithm moves. 
+    \item $\Delta{M} \le 0$. By our lemma, there could be at two types of min-cost matching before our algorithm moves. 
     \begin{itemize}
         \item Both $L$ and $R$ get matched to some servers located on the left of the request (inclusive). Then $R$ gets closer to its original matching partner for exactly $d$ units and $L$ gets further from its partner for at most $d$ units.
         \item Both $L$ and $R$ get matched to some servers located on the right of the request (inclusive). Then $L$ gets closer to its original matching partner for exactly $d$ units and $R$ gets further from its partner for at most $d$ units.
@@ -270,4 +298,5 @@ $\varphi_i \leq k \cdot Cost(OPT)_i + Cost(Algo)_i$, where $Cost(OPT)_i$ and $Co
 Since $\varphi_i \geq 0$, we thus have $ k \cdot Cost(OPT)_i \leq Cost(Algo)_i$.
 
 Therefore, our algorithm is k-competitive. 
+\end{proof}
 \end{document}
