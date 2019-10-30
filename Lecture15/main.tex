@@ -13,14 +13,9 @@
 \usepackage{tabu,multirow}
 \usepackage{graphicx}
 \usepackage{color} 
-%\usepackage{ulem}
-\usepackage{floatrow}
 \usepackage[labelfont=bf]{caption}
-\captionsetup[table]{position=bottom,name=Figure}
-\captionsetup[subtable]{textfont=it,position=top}
 \usepackage{subcaption}
 \usepackage{enumitem}
-
 
 \makeatletter
 \setlength{\textwidth}{6.5in}
@@ -111,13 +106,13 @@
 \newcommand{\mnote}[1]{\normalmarginpar \marginpar{\tiny #1}}
 
 \newcommand{\headings}[4]{
-\noindent
-\fbox{\parbox{\textwidth}{
-{\bf CS787: Advanced Algorithms} \hfill {{\bf Scribe:} #3}\\
-\vspace{0.02in}
-{{\bf Lecture #1:} #2} \hfill {{\bf Date:} #4}
-}}
-\vspace{0.2in}
+	\noindent
+	\fbox{\parbox{\textwidth}{
+			{\bf CS787: Advanced Algorithms} \hfill {{\bf Scribe:} #3}\\
+			\vspace{0.02in}
+			{{\bf Lecture #1:} #2} \hfill {{\bf Date:} #4}
+	}}
+	\vspace{0.2in}
 }
 
 \newcommand{\stargraph}[2]{\begin{tikzpicture}
@@ -128,14 +123,17 @@
         \node at (0,-#2*1.5) {$K_{1,#1}$}; % delete line to remove label
     }
 \end{tikzpicture}}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Document begins here %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+
 \begin{document}
 
 \newcommand{\lecnum}{15}
-\headings{\lecnum}{Online Algorithm III}{Jennifer Cao,Sihan Liu}{October 24, 2019}
+\headings{\lecnum}{Online Algorithm III}{Sihan Liu,Jennifer Cao}{October 24, 2019}
 
 Last time we check investigate the online algorithms for page caching. 
 \begin{itemize}
@@ -145,32 +143,26 @@ For deterministic algorithm, we show that \textbf{FIFO(First In First Out)} and 
 For the randomized setting, we show that \textbf{Marking Algorithm} has achieved competitive ratio of $\boldsymbol{\log k}$.
 \end{itemize}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Paging Problem
-% 1. Definition
-% 2. Deterministic Algorithms
-% 3. k-competitive
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{$\boldsymbol{\log k}$ is tight for any randomized paging algorithm}
 It is hard to construct a deterministic adversarial setting directly due to the randomness. Instead, we formulate the problem in a game theoretical manner where the problem essentially becomes a min-max game between algorithm designer and the sequence constructor.
 \subsection{Yao's Min-max Principle}
-Let $\alpha$ be one specific decision instance made by the algorithm and $A$ be the set of all possible instances. \newline
+Let $\alpha$ be one specific decision instance made by the algorithm and $A$ be the set of all possible instances.
 
-Let $\sigma$ be the one specific sequence instance and $\Sigma$ be the set of all possible sequence instances. \newline
+Let $\sigma$ be the one specific sequence instance and $\Sigma$ be the set of all possible sequence instances.
 
-Denote $\Delta(\cdot)$ as the mixture operator.\newline
+Denote $\Delta(\cdot)$ as the mixture operator.
 
-Denote $cost(\alpha, \sigma)$ as the cost by applying decisions $\alpha$ to the input $\sigma$.\newline
+Denote $cost(\alpha, \sigma)$ as the cost by applying decisions $\alpha$ to the input $\sigma$.
 
 The game is essentially:
 $$
-\min_{\alpha \sim \Delta(\uprightcal{A})}\max_{\sigma \sim \Delta(\Sigma)}\mathbb{E}\left[\frac{cost(\alpha, \sigma)}{cost(OPT, \sigma)}\right]
+\min_{\alpha \sim \Delta(A)}\max_{\sigma \sim \Delta(\Sigma)}\mathbb{E}\left[\frac{cost(\alpha, \sigma)}{cost(OPT, \sigma)}\right]
 $$
 
 Applying the min-max theorem, we can reduce it to:
 \begin{align*}
-&\min_{\alpha \sim \Delta(\uprightcal{A})}\max_{\sigma \sim \Delta(\Sigma)}\mathbb{E}\left[\frac{cost(\alpha, \sigma)}{cost(OPT, \sigma)}\right] \\
-&=\max_{\sigma \sim \Delta(\Sigma)}\min_{\alpha \sim \Delta(\uprightcal{A})}\mathbb{E}\left[\frac{cost(\alpha, \sigma)}{cost(OPT, \sigma)}\right] \\
+&\min_{\alpha \sim \Delta(A)}\max_{\sigma \sim \Delta(\Sigma)}\mathbb{E}\left[\frac{cost(\alpha, \sigma)}{cost(OPT, \sigma)}\right] \\
+&=\max_{\sigma \sim \Delta(\Sigma)}\min_{\alpha \sim \Delta(A)}\mathbb{E}\left[\frac{cost(\alpha, \sigma)}{cost(OPT, \sigma)}\right] \\
 &\geq \min_{\alpha \sim A} \mathbb{E}\left[\frac{cost(\alpha, \sigma)}{cost(OPT, \sigma)}\right], \forall \sigma \sim \Delta(\Sigma) \\
 &\text{(notice that we have got rid of the randomness in our decisions)}
 \end{align*}
@@ -178,16 +170,16 @@ Applying the min-max theorem, we can reduce it to:
 \begin{theorem}
     Any randomized online algorithm cannot do better than $\boldsymbol{\Omega(\log k)}$
 \end{theorem}
-Our sequence only picks from page $1, \dots, k, k+1$, where $k$ is the cache capacity. At every time, it picks a random page uniformly from the options. Then, it can easily be shown that regardless of what decisions the algorithm has made, its expected cost over $T$ steps will be: $\mathbb{E}\left[cost(\alpha, \sigma)\right] = \frac{T}{k+1}$ as a cache miss occurs w.p $P = \frac{1}{k+1}$. \newline 
+Our sequence only picks from page $1, \dots, k, k+1$, where $k$ is the cache capacity. At every time, it picks a random page uniformly from the options. Then, it can easily be shown that regardless of what decisions the algorithm has made, its expected cost over $T$ steps will be: $\mathbb{E}\left[cost(\alpha, \sigma)\right] = \frac{T}{k+1}$ as a cache miss occurs w.p $P = \frac{1}{k+1}$.
 
 Next, define \textbf{phase} as the shortest sub-sequence where all $(k+1)$ pages has appeared for at least once. The O.P.T will make exactly 1 cache miss during one phase. Therefore, for a phase $\sigma_p$ of length $T$, it can be shown that:
 $\mathbb{E}\left[cost(OPT, \sigma_p)\right] = \frac{T}{\mathbb{E}\left[\text{length of the phase}\right]}$
 
-Calculating the length of a phase is exactly the standard coupon collector problem. \newline
+Calculating the length of a phase is exactly the standard coupon collector problem.
 
-With probability 1, we will see the first new page at the start of the sequence.\newline
+With probability 1, we will see the first new page at the start of the sequence.
 
-Assume that we have already seen $l$ pages, then the probability that the next page is a unseen new page will be $P = \frac{k+1-l}{k+1}$. \newline
+Assume that we have already seen $l$ pages, then the probability that the next page is a unseen new page will be $P = \frac{k+1-l}{k+1}$.
 
 Thus, we have:
 \begin{align*}
@@ -218,17 +210,17 @@ We focus on the strategy when the metric space is a 1-d straight line though it 
 \caption{Move servers in response to request}
 \begin{algorithmic} 
 \IF{\text{Requests happen outside the interval covered by the servers}}
-\text{Move the closest server to handle the event}
+\STATE \text{Move the closest server to handle the event}
 \ELSE
-\text{Move both the server on the left side and right side of the request until the first one arrives}
+\STATE \text{Move both the server on the left side and right side of the request until the first one arrives}
 \ENDIF
 \end{algorithmic}
 \end{algorithm}
 \newline
 To help us conduct the competitive analysis, we define the following auxiliary potential function:
-$$
-\varphi = k \cdot (\text{min cost match between server positions by Algo and OPT}) + (\text{pair-wise distances of servers in Algo})
-$$
+
+$$\varphi = k \cdot (\text{min cost match between server positions by Algo and OPT}) + (\text{pair-wise distances of servers in Algo})$$
+
 Make the following notation
 \begin{itemize}
     \item  $M = (\text{min cost match between server positions by Algo and OPT})$.
@@ -237,7 +229,7 @@ Make the following notation
 
 
 
-Next, we consider how moves from the Optimal algorithm and our algorithm will influence the potential function. For convenience of analysis, we assume the optimal algorithm moves first, and our algorithm moves after in response to a request. \newline
+Next, we consider how moves from the Optimal algorithm and our algorithm will influence the potential function. For convenience of analysis, we assume the optimal algorithm moves first, and our algorithm moves after in response to a request.
 
 \begin{lemma}
 For two different server arrangements $X_{OPT}$ and $X_{{Algo}}$, we can always first sort $X_{OPT}$ and $X_{Algo}$ on the line and then match them by order to obtain a min cost matching.
@@ -251,8 +243,9 @@ Suppose O.P.T moves by $d$:
     \item $\Delta{S} = 0$ since our algorithm has never moved.
 \end{itemize}
 
-Suppose our algorithm moves by $d$: \newline
-If the request is outside the range, we have: \newline
+Suppose our algorithm moves by $d$:
+
+If the request is outside the range, we have:
 \begin{itemize}
     \item $\Delta{M} = -d$, as the server moved by our algorithm gets closer to the rightmost server of the O.P.T for exactly $d$.
     \item $\Delta{S} = (k-1)d$, as rightmost server of our algorithm is getting further away from all the other servers.
@@ -265,15 +258,16 @@ If the request is within the interval of servers $L$ and $R$,
         \item Both $L$ and $R$ get matched to some servers located on the right of the request (inclusive). Then $L$ gets closer to its original matching partner for exactly $d$ units and $R$ gets further from its partner for at most $d$ units.
     \end{itemize}
     \item $\Delta{S} = -2d$ as the two servers are moving towards each other and their distance to other servers cancel out exactly.
-\end{itemize} \newline
+\end{itemize}
 
 
-In summary, we must have $\Delta{\varphi}_i \leq k \Delta{Cost(OPT)}_i - \Delta{Cost(Algo)}_i$, where $\Delta{Cost(OPT)}_i$ and $\Delta{Cost(Algo)}_i$ is the distance moved by O.P.T and by our algorithm accordingly in response to request $i$. \newline 
+In summary, we must have $\Delta{\varphi}_i \leq k \Delta{Cost(OPT)}_i - \Delta{Cost(Algo)}_i$, where $\Delta{Cost(OPT)}_i$ and $\Delta{Cost(Algo)}_i$ is the distance moved by O.P.T and by our algorithm accordingly in response to request $i$.
 
-Summing it over all the steps/requests from $1, \cdots, i$, we then have: \newline
-$\varphi_i \leq k \cdot Cost(OPT)_i + Cost(Algo)_i$, where $Cost(OPT)_i$ and $Cost(Algo)_i$ are the cumulative distance/cost moved by O.P.T and our algorithm accordingly up to request $i$. \newline 
+Summing it over all the steps/requests from $1, \cdots, i$, we then have:
 
-Since $\varph_i \geq 0$, we thus have $ k \cdot Cost(OPT)_i \leq Cost(Algo)_i$. \newline
+$\varphi_i \leq k \cdot Cost(OPT)_i + Cost(Algo)_i$, where $Cost(OPT)_i$ and $Cost(Algo)_i$ are the cumulative distance/cost moved by O.P.T and our algorithm accordingly up to request $i$.
+
+Since $\varphi_i \geq 0$, we thus have $ k \cdot Cost(OPT)_i \leq Cost(Algo)_i$.
 
 Therefore, our algorithm is k-competitive. 
 \end{document}
